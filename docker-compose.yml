@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    container_name: milk_app
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+    volumes:
+      - .:/var/www/html
+    networks:
+      - milk_network
+    restart: always
+
+  db:
+    image: postgres:15
+    container_name: milk_db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./ql_ban_sua.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - milk_network
+    restart: always
+
+volumes:
+  db_data:
+
+networks:
+  milk_network:
+    driver: bridge
