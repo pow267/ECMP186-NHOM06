@@ -1,0 +1,17 @@
+name: WEB PHP
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  kiem-tra-ci:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Tải mã nguồn
+        uses: actions/checkout@v4
+
+      - name: Thông báo kiểm tra CI
+        run: echo "CI/CD đang hoạt động bình thường!"
