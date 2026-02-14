@@ -2,7 +2,7 @@ name: CD - Auto Deploy
 
 on:
   workflow_run:
-    workflows: ["CI - Build & Test"]
+    workflows: ["CI - KIỂM TRA VÀ BUILD"]
     types:
       - completed
 
@@ -12,15 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout lại source
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Setup Fly CLI
       - name: Setup Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
-      # Deploy lên Fly
       - name: Deploy to Fly.io
         run: flyctl deploy --remote-only
         env:
