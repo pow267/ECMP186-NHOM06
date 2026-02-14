@@ -21,24 +21,24 @@ include "logic.php";
             <tr>
             <?php
             $count = 0;
-            while ($row = mysqli_fetch_assoc($result)) {
+            while ($row = $result->fetch()) {
                 $count++;
-                $hinh = !empty($row['Hinh']) ? $row['Hinh'] : 'default.jpg';
+                $hinh = !empty($row['hinh']) ? $row['hinh'] : 'default.jpg';
             ?>
                 <td>
                     <div class="product-name">
-                        <a href="?ma_sua=<?= $row['Ma_sua'] ?>#chitiet">
-                            <?= $row['Ten_sua'] ?>
+                        <a href="?ma_sua=<?= $row['ma_sua'] ?>#chitiet">
+                            <?= $row['ten_sua'] ?>
                         </a>
                     </div>
 
                     <div class="product-price">
-                        <?= $row['Trong_luong'] ?> gr -
-                        <?= number_format($row['Don_gia'], 0, ',', '.') ?> VND
+                        <?= $row['trong_luong'] ?> gr -
+                        <?= number_format($row['don_gia'], 0, ',', '.') ?> VND
                     </div>
 
                     <div class="img-box">
-                        <img src="images/<?= $hinh ?>" alt="<?= $row['Ten_sua'] ?>">
+                        <img src="images/<?= $hinh ?>" alt="<?= $row['ten_sua'] ?>">
                     </div>
                 </td>
             <?php
@@ -76,8 +76,8 @@ include "logic.php";
                 <label>Hãng sữa</label>
                 <select name="ma_hang_sua">
                     <?php
-                    $hs = mysqli_query($conn, "SELECT * FROM hang_sua");
-                    while ($h = mysqli_fetch_assoc($hs)) {
+                    $hs = $pdo->query("SELECT * FROM hang_sua");
+                    while ($h = $hs->fetch()) {
                         echo "<option value='{$h['ma_hs']}'>{$h['ten_hs']}</option>";
                     }
                     ?>
@@ -125,21 +125,21 @@ include "logic.php";
         <?php } ?>
 
         <?php if ($chitiet) {
-            $hinh_ct = !empty($chitiet['Hinh']) ? $chitiet['Hinh'] : 'default.jpg';
+            $hinh_ct = !empty($chitiet['hinh']) ? $chitiet['hinh'] : 'default.jpg';
         ?>
         <hr>
         <div id="chitiet">
         <table class="detail-table">
             <tr>
                 <th colspan="2" class="table-title">
-                    <?= $chitiet['Ten_sua'] ?> - <?= $chitiet['ten_hs'] ?>
+                    <?= $chitiet['ten_sua'] ?> - <?= $chitiet['ten_hs'] ?>
                 </th>
             </tr>
 
             <tr>
                 <td class="detail-image">
                     <div class="img-box">
-                        <img src="images/<?= $hinh_ct ?>" alt="<?= $chitiet['Ten_sua'] ?>">
+                        <img src="images/<?= $hinh_ct ?>" alt="<?= $chitiet['ten_sua'] ?>">
                     </div>
                 </td>
                 
@@ -147,20 +147,20 @@ include "logic.php";
                     <div class="detail-block">
                         <div class="detail-title">Thành phần dinh dưỡng:</div>
                         <div class="detail-content">
-                            <?= $chitiet['Thanh_phan_dinh_duong'] ?>
+                            <?= $chitiet['thanh_phan_dinh_duong'] ?>
                         </div>
                     </div>
 
                     <div class="detail-block">
                         <div class="detail-title">Lợi ích:</div>
                         <div class="detail-content">
-                            <?= $chitiet['Loi_ich'] ?>
+                            <?= $chitiet['loi_ich'] ?>
                         </div>
                     </div>
 
                     <div class="detail-price">
-                        Trọng lượng: <?= $chitiet['Trong_luong'] ?> gr -
-                        Đơn giá: <?= number_format($chitiet['Don_gia'], 0, ',', '.') ?> VND
+                        Trọng lượng: <?= $chitiet['trong_luong'] ?> gr -
+                        Đơn giá: <?= number_format($chitiet['don_gia'], 0, ',', '.') ?> VND
                     </div>
                 </td>
             </tr>
@@ -168,6 +168,5 @@ include "logic.php";
         </div>
         <?php } ?>
     </div>
-
 </body>
 </html>

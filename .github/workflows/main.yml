@@ -1,4 +1,4 @@
-name: WEB PHP
+name: Tự động Build/test
 
 on:
   push:

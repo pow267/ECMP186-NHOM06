@@ -1,18 +1,45 @@
 <?php
+/* =========================
+   KẾT NỐI DATABASE (FLY.IO)
+========================= */
+
 $databaseUrl = getenv('DATABASE_URL');
 
+if (!$databaseUrl) {
+    die("DATABASE_URL not found");
+}
+
+$db = parse_url($databaseUrl);
+
+$host = $db['host'];
+$port = $db['port'];
+$user = $db['user'];
+$pass = $db['pass'];
+$dbname = ltrim($db['path'], '/');
+
+$dsn = "pgsql:host=$host;port=$port;dbname=$dbname";
+
 try {
-    $pdo = new PDO($databaseUrl);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = new PDO(
+        $dsn,
+        $user,
+        $pass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+        ]
+    );
 } catch (PDOException $e) {
     die("Database connection failed: " . $e->getMessage());
 }
 
+
 /* =========================
    TẠO MÃ SỮA TỰ ĐỘNG
 ========================= */
-$stmt = $pdo->query('SELECT MAX("Ma_sua") AS max_ma FROM sua');
-$row_ma_form = $stmt->fetch(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->query('SELECT MAX(ma_sua) AS max_ma FROM sua');
+$row_ma_form = $stmt->fetch();
 
 if (!$row_ma_form || $row_ma_form['max_ma'] == null) {
     $ma_sua_auto = 'S01';
@@ -21,59 +48,66 @@ if (!$row_ma_form || $row_ma_form['max_ma'] == null) {
     $ma_sua_auto = 'S' . str_pad($so, 2, '0', STR_PAD_LEFT);
 }
 
+
 /* =========================
    DANH SÁCH SỮA
 ========================= */
+
 $sql = '
-    SELECT "Ma_sua", "Ten_sua", "Trong_luong",
-           "Don_gia", "Hinh"
+    SELECT ma_sua, ten_sua, trong_luong,
+           don_gia, hinh
     FROM sua
 ';
+
 $result = $pdo->query($sql);
+
 
 /* =========================
    CHI TIẾT
 ========================= */
+
 $chitiet = null;
 
 if (isset($_GET['ma_sua'])) {
-    $ma = $_GET['ma_sua'];
 
     $stmt = $pdo->prepare('
         SELECT sua.*, hang_sua.ten_hs
         FROM sua
         JOIN hang_sua
-        ON sua."Ma_hang_sua" = hang_sua.ma_hs
-        WHERE sua."Ma_sua" = :ma
+        ON sua.ma_hang_sua = hang_sua.ma_hs
+        WHERE sua.ma_sua = :ma
     ');
 
-    $stmt->execute(['ma' => $ma]);
-    $chitiet = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->execute(['ma' => $_GET['ma_sua']]);
+    $chitiet = $stmt->fetch();
 }
+
 
 /* =========================
    THÊM SỮA
 ========================= */
+
 if (isset($_POST['btn_them'])) {
 
     $hinh = '';
 
     if (!empty($_FILES['hinh']['name'])) {
-        $hinh = $_FILES['hinh']['name'];
-        move_uploaded_file($_FILES['hinh']['tmp_name'], "images/$hinh");
+        $hinh = basename($_FILES['hinh']['name']);
+        $targetPath = __DIR__ . "/images/" . $hinh;
+        move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath);
     }
 
     $stmt = $pdo->prepare('
         INSERT INTO sua (
-            "Ma_sua",
-            "Ten_sua",
-            "Ma_hang_sua",
-            "Loai_sua",
-            "Trong_luong",
-            "Don_gia",
-            "Thanh_phan_dinh_duong",
-            "Loi_ich",
-            "Hinh"
+            ma_sua,
+            ten_sua,
+            ma_hang_sua,
+            loai_sua,
+            trong_luong,
+            don_gia,
+            thanh_phan_dinh_duong,
+            loi_ich,
+            hinh
         )
         VALUES (
             :ma_sua,
@@ -103,3 +137,4 @@ if (isset($_POST['btn_them'])) {
     header("Location: index.php");
     exit;
 }
+?>
