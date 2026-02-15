@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Thông tin các sản phẩm</title>
-    <link rel="stylesheet" href="/css/index.css?v=3">
+    <link rel="stylesheet" href="/assets/css/index.css?v=3">
 </head>
 
 <body>
@@ -49,7 +49,7 @@
                 </div>
 
                 <div class="img-box">
-                    <img src="/images/<?= htmlspecialchars($hinh) ?>"
+                    <img src="/assets/images/<?= htmlspecialchars($hinh) ?>"
                          alt="<?= htmlspecialchars($row['ten_sua']) ?>">
                 </div>
             </td>
@@ -171,7 +171,7 @@
             <tr>
                 <td class="detail-image">
                     <div class="img-box">
-                        <img src="/images/<?= htmlspecialchars($hinh_ct) ?>"
+                        <img src="/assets/images/<?= htmlspecialchars($hinh_ct) ?>"
                              alt="<?= htmlspecialchars($chitiet['ten_sua']) ?>">
                     </div>
                 </td>
