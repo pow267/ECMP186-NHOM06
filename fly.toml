@@ -1,12 +1,8 @@
-# fly.toml app configuration file generated for ecmp186-nhom06 on 2026-02-14T15:24:34+07:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'ecmp186-nhom06'
 primary_region = 'sin'
 
 [build]
+  dockerfile = 'docker/Dockerfile'
 
 [http_service]
   internal_port = 80
