@@ -2,7 +2,7 @@ name: CD - Auto Deploy
 
 on:
   workflow_run:
-    workflows: ["CI - KIỂM TRA VÀ BUILD"]
+    workflows: ["CI - Build & Runtime Test"]
     types:
       - completed
 
