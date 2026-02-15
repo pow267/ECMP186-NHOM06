@@ -5,7 +5,8 @@
 ![CD - Deploy](https://github.com/pow267/ECMP186-NHOM06/actions/workflows/cd.yml/badge.svg)
 
 # TỔNG QUAN:
-    Đây là Website quản lý sản phẩm sữa được xây dựng bằng PHP và PostgreSQL, được container hóa bằng Docker và triển khai tự động thông qua CI/CD lên Fly.io.
+    Đây là Website quản lý sản phẩm sữa được xây dựng bằng PHP và PostgreSQL, 
+    được container hóa bằng Docker và triển khai tự động thông qua CI/CD lên Fly.io.
 
 # Mục tiêu của project:
     - Docker hóa ứng dụng
