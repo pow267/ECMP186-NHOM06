@@ -1,4 +1,4 @@
-name: CD - Deploy to Fly.io
+name: CD - Auto Deploy
 
 on:
   workflow_run:
