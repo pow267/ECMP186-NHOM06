@@ -1,7 +1,8 @@
 .git
 .github
-.env
-.env.*
 node_modules
-docker-compose*
+docker
+database
 README.md
+.env
+.env.example
