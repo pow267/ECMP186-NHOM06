@@ -7,14 +7,15 @@ services:
     ports:
       - "8080:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
     volumes:
       - .:/var/www/html
     networks:
       - milk_network
-    restart: always
+    restart: unless-stopped
 
   db:
     image: postgres:15
@@ -23,14 +24,17 @@ services:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
       - ./ql_ban_sua.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - milk_network
-    restart: always
+    restart: unless-stopped
 
 volumes:
   db_data:

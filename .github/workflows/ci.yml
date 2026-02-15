@@ -1,4 +1,4 @@
-name: CI - KIỂM TRA VÀ BUILD
+name: CI - Build & Runtime Test
 
 on:
   pull_request:
@@ -11,20 +11,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Lấy mã nguồn
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Kiểm tra syntax PHP
-      - name: Check PHP syntax
-        run: find . -name "*.php" -exec php -l {} \;
+      - name: Create .env for CI
+        run: |
+          echo "POSTGRES_DB=ql_ban_sua" >> .env
+          echo "POSTGRES_USER=postgres" >> .env
+          echo "POSTGRES_PASSWORD=postgres" >> .env
 
-      # 3. Build Docker image để đảm bảo Dockerfile không lỗi
-      - name: Build Docker image
-        run: docker build -t test-image .
+      - name: Build containers
+        run: docker compose up -d --build
 
-      # 4. Đảm bảo Php version 8.2
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
+      - name: Wait for app
+        run: sleep 15
+
+      - name: Test HTTP response
+        run: |
+          STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080)
+          if [ "$STATUS" -ne 200 ]; then
+            echo "App is not responding correctly"
+            exit 1
+          fi
+
+      - name: Shutdown containers
+        run: docker compose down -v
