@@ -13,6 +13,7 @@ class SuaController
 
     public function index()
     {
+        /* ===================== XÓA ===================== */
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['action'])
             && $_POST['action'] === 'xoa') {
@@ -25,6 +26,7 @@ class SuaController
             exit;
         }
 
+        /* ===================== THÊM ===================== */
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_them'])) {
 
@@ -32,7 +34,7 @@ class SuaController
 
             if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
 
-                $uploadDir = __DIR__ . '/../public/images/';
+                $uploadDir = __DIR__ . '/../../public/assets/images/';
 
                 if (!is_dir($uploadDir)) {
                     mkdir($uploadDir, 0755, true);
@@ -70,6 +72,7 @@ class SuaController
             exit;
         }
 
+        /* ===================== SỬA ===================== */
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_sua'])) {
 
@@ -77,7 +80,12 @@ class SuaController
 
             if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
 
-                $uploadDir = __DIR__ . '/../public/images/';
+                $uploadDir = __DIR__ . '/../../public/assets/images/';
+
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
                 $ext = strtolower(pathinfo($_FILES['hinh']['name'], PATHINFO_EXTENSION));
                 $allowed = ['jpg', 'jpeg', 'png'];
 
@@ -110,6 +118,7 @@ class SuaController
             exit;
         }
 
+        /* ===================== LOAD DATA ===================== */
         $products = $this->model->getAll();
         $hangSua = $this->model->getHangSua();
         $ma_sua_auto = $this->model->generateMaSua();
