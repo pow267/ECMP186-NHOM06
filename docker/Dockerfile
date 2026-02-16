@@ -32,6 +32,9 @@ WORKDIR /var/www/html
 # ===== COPY SOURCE =====
 COPY . .
 
+# ===== REMOVE DEV FILES FROM IMAGE =====
+RUN rm -rf /var/www/html/docker
+
 # ===== PERMISSIONS =====
 RUN chown -R www-data:www-data /var/www/html
 

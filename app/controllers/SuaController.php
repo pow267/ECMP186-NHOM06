@@ -5,10 +5,58 @@ require_once __DIR__ . '/../models/SuaModel.php';
 class SuaController
 {
     private $model;
+    private $uploadDir;
 
     public function __construct()
     {
         $this->model = new SuaModel();
+        $this->uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/images/';
+    }
+
+    private function safeUnlink($filename)
+    {
+        if (empty($filename) || $filename === 'default.jpg') {
+            return;
+        }
+
+        $realBase = realpath($this->uploadDir);
+        $realFile = realpath($this->uploadDir . $filename);
+
+        if ($realFile && $realBase && strpos($realFile, $realBase) === 0) {
+            unlink($realFile);
+        }
+    }
+
+    private function handleUpload()
+    {
+        if (!isset($_FILES['hinh']) || $_FILES['hinh']['error'] !== 0) {
+            return 'default.jpg';
+        }
+
+        if ($_FILES['hinh']['size'] > 2 * 1024 * 1024) {
+            die("File quá lớn (tối đa 2MB)");
+        }
+
+        $mime = mime_content_type($_FILES['hinh']['tmp_name']);
+        $allowedMime = ['image/jpeg', 'image/png'];
+
+        if (!in_array($mime, $allowedMime)) {
+            die("Định dạng file không hợp lệ");
+        }
+
+        if (!is_dir($this->uploadDir)) {
+            mkdir($this->uploadDir, 0755, true);
+        }
+
+        $ext = $mime === 'image/png' ? 'png' : 'jpg';
+        $newFileName = uniqid('milk_', true) . '.' . $ext;
+        $targetPath = $this->uploadDir . $newFileName;
+
+        if (move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath)) {
+            return $newFileName;
+        }
+
+        return 'default.jpg';
     }
 
     public function index()
@@ -16,22 +64,20 @@ class SuaController
         /* ===================== XÓA ===================== */
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['action'])
-            && $_POST['action'] === 'xoa') {
+            && $_POST['action'] === 'xoa'
+            && !empty($_POST['ma_sua'])) {
 
-            if (!empty($_POST['ma_sua'])) {
-
+            try {
                 $sua = $this->model->getById($_POST['ma_sua']);
 
-                if ($sua && !empty($sua['hinh']) && $sua['hinh'] !== 'default.jpg') {
-
-                    $imagePath = __DIR__ . '/../../public/assets/images/' . $sua['hinh'];
-
-                    if (file_exists($imagePath)) {
-                        unlink($imagePath);
-                    }
+                if ($sua && !empty($sua['hinh'])) {
+                    $this->safeUnlink($sua['hinh']);
                 }
 
                 $this->model->delete($_POST['ma_sua']);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                die("Có lỗi xảy ra.");
             }
 
             header("Location: /");
@@ -42,29 +88,7 @@ class SuaController
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_them'])) {
 
-            $hinh = 'default.jpg';
-
-            if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
-
-                $uploadDir = __DIR__ . '/../../public/assets/images/';
-
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-
-                $ext = strtolower(pathinfo($_FILES['hinh']['name'], PATHINFO_EXTENSION));
-                $allowed = ['jpg', 'jpeg', 'png'];
-
-                if (in_array($ext, $allowed)) {
-
-                    $newFileName = uniqid('milk_', true) . '.' . $ext;
-                    $targetPath = $uploadDir . $newFileName;
-
-                    if (move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath)) {
-                        $hinh = $newFileName;
-                    }
-                }
-            }
+            $hinh = $this->handleUpload();
 
             $data = [
                 'ma_sua' => $_POST['ma_sua'],
@@ -78,7 +102,12 @@ class SuaController
                 'hinh' => $hinh
             ];
 
-            $this->model->insert($data);
+            try {
+                $this->model->insert($data);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                die("Có lỗi xảy ra.");
+            }
 
             header("Location: /?ma_sua=" . $_POST['ma_sua']);
             exit;
@@ -88,39 +117,16 @@ class SuaController
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_sua'])) {
 
-            $hinh = $_POST['hinh_cu'];
-            $oldImage = $_POST['hinh_cu'];
+            $oldImage = $_POST['hinh_cu'] ?? 'default.jpg';
+            $hinh = $oldImage;
 
             if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
 
-                $uploadDir = __DIR__ . '/../../public/assets/images/';
+                $newImage = $this->handleUpload();
 
-                if (!is_dir($uploadDir)) {
-                    mkdir($uploadDir, 0755, true);
-                }
-
-                $ext = strtolower(pathinfo($_FILES['hinh']['name'], PATHINFO_EXTENSION));
-                $allowed = ['jpg', 'jpeg', 'png'];
-
-                if (in_array($ext, $allowed)) {
-
-                    $newFileName = uniqid('milk_', true) . '.' . $ext;
-                    $targetPath = $uploadDir . $newFileName;
-
-                    if (move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath)) {
-
-                        // Xóa ảnh cũ nếu không phải default
-                        if (!empty($oldImage) && $oldImage !== 'default.jpg') {
-
-                            $oldPath = $uploadDir . $oldImage;
-
-                            if (file_exists($oldPath)) {
-                                unlink($oldPath);
-                            }
-                        }
-
-                        $hinh = $newFileName;
-                    }
+                if ($newImage !== 'default.jpg') {
+                    $this->safeUnlink($oldImage);
+                    $hinh = $newImage;
                 }
             }
 
@@ -136,7 +142,12 @@ class SuaController
                 'hinh' => $hinh
             ];
 
-            $this->model->update($data);
+            try {
+                $this->model->update($data);
+            } catch (Exception $e) {
+                error_log($e->getMessage());
+                die("Có lỗi xảy ra.");
+            }
 
             header("Location: /?ma_sua=" . $_POST['ma_sua']);
             exit;

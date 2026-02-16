@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
   app:
     build:
@@ -11,6 +13,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgres://postgres:postgres@db:5432/ql_ban_sua
+      APP_ENV: local
     volumes:
       - ..:/var/www/html
     networks:
