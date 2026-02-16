@@ -1,199 +1,249 @@
-/*--------------------------------------------------------*/
-/* TOÀN BỘ TRANG */
 body {
     margin: 0;
     padding: 0;
-    font-family: Arial, sans-serif;
+    font-family: 'Inter', Arial, sans-serif;
     background: #ffffff;
+    color: #2c3e50;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    animation: fadeInPage 0.5s ease forwards;
 }
 
-/*--------------------------------------------------------*/
-/* BOX NỘI DUNG */
+@keyframes fadeInPage {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .box {
     width: 95%;
     max-width: 1100px;
     margin: 40px auto;
-    background-color: #ffffff;
     padding: 20px;
+    background: rgba(255,255,255,0.96);
     border-radius: 10px;
-    box-shadow: 0 0 14px rgba(0,0,0,0.15);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+    backdrop-filter: blur(4px);
+    transition: 0.3s ease;
 }
 
-/*--------------------------------------------------------*/
-/* BẢNG CHUNG */
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th, td {
-    border: 1px solid #666;
-    text-align: center;
-}
-
-/*--------------------------------------------------------*/
-/* TIÊU ĐỀ BẢNG */
 .table-title {
-    background-color: #f5b36b;
+    background: #f5b36b;
     color: #000;
     font-size: 22px;
-    font-weight: bold;
-    padding: 10px;
+    font-weight: 700;
+    padding: 12px;
+    text-align: center;
+    border-radius: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 15px;
 }
 
-/*--------------------------------------------------------*/
-/* Ô SẢN PHẨM (LIST) */
-td {
-    width: 33.33%;
-    height: 220px;
-    padding: 8px;
-    vertical-align: top;
-    overflow: hidden;
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+
+.product-card {
+    border: 1px solid #e0e0e0;
     background: #ffffff;
+    min-height: 220px;   /* thay vì height */
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.25s ease;
+    animation: fadeInItem 0.6s ease forwards;
+    display: flex;
+    flex-direction: column;
 }
 
-/*--------------------------------------------------------*/
-/* TÊN & GIÁ */
+@keyframes fadeInItem {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.product-card:hover {
+    transform: translateY(-4px);
+    background-color: #fff8f2;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+}
+
 .product-name {
-    font-weight: bold;
-    margin-bottom: 4px;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 15px;
+    height: 38px;
+    line-height: 1.3;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
 }
 
 .product-name a {
-    color: blue;
-    text-decoration: underline;
+    color: #1f3c88;
+    text-decoration: none;
+    position: relative;
 }
 
-.product-name a:hover {
-    color: red;
+.product-name a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: -2px;
+    width: 0%;
+    height: 2px;
+    background: #e74c3c;
+    transition: 0.3s ease;
+}
+
+.product-name a:hover::after {
+    width: 100%;
 }
 
 .product-price {
     font-size: 14px;
     margin-bottom: 6px;
+    color: #555;
 }
 
-/*--------------------------------------------------------*/
-/* KHUNG ẢNH */
 .img-box {
     width: 100%;
-    height: 200px;
-    margin: 0 auto;
+    height: 150px;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-top: auto;
     overflow: hidden;
 }
 
 .img-box img {
-    max-width: 200px;
-    max-height: 200px;
+    max-width: 100%;
+    max-height: 140px;
     object-fit: contain;
+    display: block;
 }
 
-/*--------------------------------------------------------*/
-/* NÚT THÊM SỮA */
-.add-btn {
+.product-card:hover .img-box img {
+    transform: scale(1.05);
+}
+
+.add-btn,
+.form-actions button {
     display: inline-block;
     padding: 12px 25px;
-    background: #e74c3c;
+    background: linear-gradient(135deg, #e74c3c, #ff6b5e);
     color: white;
-    font-weight: bold;
-    text-decoration: none;
+    font-weight: 600;
+    border: none;
     border-radius: 6px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.25);
+}
+
+.add-btn:hover,
+.form-actions button:hover {
+    background: linear-gradient(135deg, #c0392b, #e74c3c);
+}
+
+.add-btn:active,
+.form-actions button:active {
+    transform: scale(0.97);
 }
 
 .add-btn-box {
     text-align: center;
-    margin: 20px 0;
+    margin: 25px 0;
 }
-
-.add-btn:hover {
-    background: #c0392b;
-}
-
 
 .add-form {
     max-width: 700px;
     margin: 20px auto;
     border: 1px solid #e74c3c;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 20px 30px;
     background: #fff;
+    animation: slideFadeIn 0.5s ease forwards;
 }
 
-/* TIÊU ĐỀ FORM */
+@keyframes slideFadeIn {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .form-title {
     background: #e74c3c;
     color: white;
     text-align: center;
     font-size: 22px;
-    font-weight: bold;
-    padding: 10px;
+    font-weight: 700;
+    padding: 12px;
     margin: -20px -30px 20px -30px;
-    border-radius: 6px 6px 0 0;
+    border-radius: 8px 8px 0 0;
 }
 
-/* MỖI DÒNG FORM */
 .form-row {
     display: flex;
     align-items: center;
     margin-bottom: 14px;
 }
 
-/* LABEL */
 .form-row label {
     width: 180px;
-    font-weight: bold;
+    font-weight: 600;
     text-align: right;
     margin-right: 15px;
 }
 
-/* INPUT – SELECT – TEXTAREA */
 .form-row input,
 .form-row select,
 .form-row textarea {
     flex: 1;
-    padding: 6px 8px;
+    padding: 7px 10px;
     font-size: 14px;
-    border: 1px solid #999;
-    border-radius: 3px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Inter', sans-serif;
 }
 
-/* TEXTAREA */
+.form-row input:focus,
+.form-row select:focus,
+.form-row textarea:focus {
+    border-color: #e74c3c;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.15);
+}
+
 .form-row textarea {
-    height: 60px;
+    height: 70px;
     resize: vertical;
 }
 
-/* NÚT SUBMIT */
 .form-actions {
     text-align: center;
     margin-top: 20px;
 }
 
-.form-actions button {
-    padding: 10px 30px;
-    font-size: 16px;
-    font-weight: bold;
-    background: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
 }
 
-.form-actions button:hover {
-    background: #c0392b;
-}
-
-
+.detail-table th,
 .detail-table td {
-    width: auto;
-    height: auto;
+    border: 1px solid #e0e0e0;
+    padding: 10px;
 }
 
-/* CỘT THÔNG TIN BÊN PHẢI */
+.detail-image {
+    width: 40%;
+}
+
 .detail-info {
     text-align: left;
     vertical-align: top;
@@ -203,10 +253,16 @@ td {
 
 .detail-block {
     margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.detail-block:last-child {
+    border-bottom: none;
 }
 
 .detail-title {
-    font-weight: bold;
+    font-weight: 600;
     margin-bottom: 6px;
 }
 
@@ -216,15 +272,36 @@ td {
 
 .detail-price {
     margin-top: 10px;
-    font-weight: bold;
+    font-weight: 600;
 }
 
-/* Bảng chi tiết sản phẩm*/
-.detail-table {
-    margin-top: 20px;
+@media (max-width: 992px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
-/* Cột hình ảnh bên trái */
-.detail-image {
-    width: 40%;
+@media (max-width: 600px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-row label {
+        width: 100%;
+        text-align: left;
+        margin-bottom: 6px;
+    }
+}
+
+.detail-image img {
+    max-width: 100%;
+    max-height: 350px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto;
 }
