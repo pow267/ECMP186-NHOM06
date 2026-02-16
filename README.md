@@ -19,9 +19,8 @@ Dockerized PHP Application with Runtime-Validated CI/CD
     Docker image được build một lần và cấu hình theo môi trường khi triển khai.
 
 2. Kiến trúc hệ thống
-
 2.1 Môi trường Development
-
+   
     Developer
     → Docker Compose
     → App Container (PHP 8.2 + Apache)
@@ -63,7 +62,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - Có healthcheck production
 
-3. Phân tích Dockerfile
+4. Phân tích Dockerfile
     Base image:
 
     php:8.2-apache
@@ -104,7 +103,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - Thay Apache bằng php-fpm + nginx nếu cần tối ưu hiệu năng
 
-4. Docker Compose – Thiết kế môi trường Local
+5. Docker Compose – Thiết kế môi trường Local
     Cấu trúc gồm:
 
     Service: app
@@ -135,7 +134,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
     Compose tạo một network nội bộ để app kết nối database thông qua service name.
 
-5. Cơ chế khởi tạo Database
+6. Cơ chế khởi tạo Database
     Database được tự động khởi tạo khi container start lần đầu.
 
     Các cách tiếp cận thường dùng:
@@ -150,7 +149,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - Production có thể tái tạo hệ thống
 
-6. CI Pipeline – Runtime Validation
+7. CI Pipeline – Runtime Validation
     Mục tiêu của CI không chỉ là build thành công mà là xác thực runtime thực tế.
     Luồng CI:
         Build Docker image
@@ -187,7 +186,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
     Đây là integration-level validation.
 
-7. CD Pipeline – Triển khai Production
+8. CD Pipeline – Triển khai Production
     CD chỉ chạy khi:
 
         - Push lên branch main
@@ -213,7 +212,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - Production có thể restart nếu unhealthy
 
-8. Secret Management Strategy
+9. Secret Management Strategy
     Nguyên tắc:
 
         - Không commit .env
@@ -244,7 +243,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - An toàn khi open-source repo
 
-9. Tách biệt Environment
+10. Tách biệt Environment
     Development:
 
         - Docker Compose
@@ -270,8 +269,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
         - Lộ thông tin nhạy cảm
 
-10. Failure Scenario Analysis
-
+11. Failure Scenario Analysis
 10.1 Database không khởi động
 
     CI sẽ fail khi healthcheck DB không pass.
