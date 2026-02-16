@@ -9,6 +9,14 @@ class SuaController
 
     public function __construct()
     {
+        session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'httponly' => true
+        ]);
+
+        session_start();
+
         $this->model = new SuaModel();
         $this->uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/images/';
     }
@@ -61,7 +69,56 @@ class SuaController
 
     public function index()
     {
+        /* ===================== LOGOUT ===================== */
+
+        if (isset($_GET['action']) && $_GET['action'] === 'logout') {
+
+            $_SESSION = [];
+
+            if (ini_get("session.use_cookies")) {
+                $params = session_get_cookie_params();
+                setcookie(
+                    session_name(),
+                    '',
+                    time() - 42000,
+                    $params["path"],
+                    $params["domain"],
+                    $params["secure"],
+                    $params["httponly"]
+                );
+            }
+
+            session_destroy();
+
+            header("Location: /");
+            exit;
+        }
+
+        /* ===================== LOGIN ===================== */
+
+        if (isset($_POST['btn_login'])) {
+
+            $username = $_POST['username'] ?? '';
+            $password = $_POST['password'] ?? '';
+
+            if ($username === 'admin' && $password === '123') {
+                $_SESSION['logged_in'] = true;
+                header("Location: /");
+                exit;
+            } else {
+                $error = "Sai tên đăng nhập hoặc mật khẩu!";
+                require __DIR__ . '/../views/login.php';
+                return;
+            }
+        }
+
+        if (!isset($_SESSION['logged_in'])) {
+            require __DIR__ . '/../views/login.php';
+            return;
+        }
+
         /* ===================== XÓA ===================== */
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['action'])
             && $_POST['action'] === 'xoa'
@@ -85,6 +142,7 @@ class SuaController
         }
 
         /* ===================== THÊM ===================== */
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_them'])) {
 
@@ -114,6 +172,7 @@ class SuaController
         }
 
         /* ===================== SỬA ===================== */
+
         if ($_SERVER['REQUEST_METHOD'] === 'POST'
             && isset($_POST['btn_sua'])) {
 
@@ -154,6 +213,7 @@ class SuaController
         }
 
         /* ===================== LOAD DATA ===================== */
+
         $products = $this->model->getAll();
         $hangSua = $this->model->getHangSua();
         $ma_sua_auto = $this->model->generateMaSua();
