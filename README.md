@@ -19,6 +19,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
     Docker image được build một lần và cấu hình theo môi trường khi triển khai.
 
 2. Kiến trúc hệ thống
+
 2.1 Môi trường Development
 
     Developer
@@ -270,6 +271,7 @@ Dockerized PHP Application with Runtime-Validated CI/CD
         - Lộ thông tin nhạy cảm
 
 10. Failure Scenario Analysis
+
 10.1 Database không khởi động
 
     CI sẽ fail khi healthcheck DB không pass.
