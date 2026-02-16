@@ -5,15 +5,15 @@ Dockerized PHP Application with Runtime-Validated CI/CD
 
     Tài liệu này phân tích chi tiết kiến trúc và quyết định kỹ thuật của dự án ECMP186-NHOM06. Mục tiêu của hệ thống không chỉ là chạy được ứng dụng PHP trong Docker, mà là xây dựng một pipeline DevOps có khả năng:
 
-    - Chuẩn hóa môi trường phát triển
+        - Chuẩn hóa môi trường phát triển
 
-    - Xác thực runtime tự động
+        - Xác thực runtime tự động
 
-    - Triển khai production an toàn
+        - Triển khai production an toàn
 
-    - Quản lý secret đúng chuẩn
+        - Quản lý secret đúng chuẩn
 
-    - Tách biệt hoàn toàn Dev và Production
+        - Tách biệt hoàn toàn Dev và Production
 
     Triết lý thiết kế: Build once, deploy many.
     Docker image được build một lần và cấu hình theo môi trường khi triển khai.
