@@ -19,6 +19,18 @@ class SuaController
             && $_POST['action'] === 'xoa') {
 
             if (!empty($_POST['ma_sua'])) {
+
+                $sua = $this->model->getById($_POST['ma_sua']);
+
+                if ($sua && !empty($sua['hinh']) && $sua['hinh'] !== 'default.jpg') {
+
+                    $imagePath = __DIR__ . '/../../public/assets/images/' . $sua['hinh'];
+
+                    if (file_exists($imagePath)) {
+                        unlink($imagePath);
+                    }
+                }
+
                 $this->model->delete($_POST['ma_sua']);
             }
 
@@ -77,6 +89,7 @@ class SuaController
             && isset($_POST['btn_sua'])) {
 
             $hinh = $_POST['hinh_cu'];
+            $oldImage = $_POST['hinh_cu'];
 
             if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
 
@@ -95,6 +108,17 @@ class SuaController
                     $targetPath = $uploadDir . $newFileName;
 
                     if (move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath)) {
+
+                        // Xóa ảnh cũ nếu không phải default
+                        if (!empty($oldImage) && $oldImage !== 'default.jpg') {
+
+                            $oldPath = $uploadDir . $oldImage;
+
+                            if (file_exists($oldPath)) {
+                                unlink($oldPath);
+                            }
+                        }
+
                         $hinh = $newFileName;
                     }
                 }
