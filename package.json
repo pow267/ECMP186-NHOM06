@@ -1,0 +1,32 @@
+{
+  "name": "ecmp186-nhom06",
+  "version": "1.0.0",
+  "description": "ECMP186-NHOM06\r TECHNICAL DEEP DIVE\r Dockerized PHP Application with Runtime-Validated CI/CD\r 1. Giới thiệu kỹ thuật",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:css": "postcss public/assets/css/input.css -o public/assets/css/output.css",
+    "watch:css": "postcss public/assets/css/input.css -o public/assets/css/output.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pow267/ECMP186-NHOM06.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/pow267/ECMP186-NHOM06/issues"
+  },
+  "homepage": "https://github.com/pow267/ECMP186-NHOM06#readme",
+  "devDependencies": {
+    "tailwindcss": "^4.1.18"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "@tailwindcss/typography": "^0.5.19",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1"
+  }
+}

@@ -1,8 +1,9 @@
 .git
 .github
+.gitignore
 .env
 node_modules
-vendor
 .vscode/
 *.log
 vendor/
+README.md

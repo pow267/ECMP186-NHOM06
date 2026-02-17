@@ -32,7 +32,16 @@ class SuaModel
     {
         try {
             $stmt = $this->pdo->prepare("
-                SELECT *
+                SELECT 
+                    ma_sua,
+                    ten_sua,
+                    ma_hang_sua,
+                    loai_sua,
+                    trong_luong,
+                    don_gia,
+                    thanh_phan_dinh_duong AS tpdd,
+                    loi_ich,
+                    hinh
                 FROM sua
                 WHERE ma_sua = :ma
             ");

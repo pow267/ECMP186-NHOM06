@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* ================= GLOBAL ================= */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply m-0 p-0 font-sans bg-gray-100 text-slate-700 antialiased;
+  animation: fadeInPage 0.5s ease forwards;
+}
+
+@keyframes fadeInPage {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= CONTAINER ================= */
+
+.box {
+  @apply w-[95%] max-w-[1100px] mx-auto mt-10 p-6
+         bg-white rounded-xl shadow-xl;
+}
+
+.table-title {
+  @apply bg-red-500 text-white text-[22px] font-bold
+         py-3 text-center mb-6 rounded-t-lg;
+}
+
+/* ================= PRODUCT GRID ================= */
+
+.product-grid {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6;
+}
+
+.product-card {
+  @apply border border-gray-200 bg-white min-h-[220px]
+         p-4 text-center rounded-lg overflow-hidden
+         transition duration-300 flex flex-col;
+}
+
+.product-card:hover {
+  @apply -translate-y-1 bg-[#fff8f2] shadow-lg;
+}
+
+.product-name {
+  @apply font-semibold mb-2 text-[15px] leading-[1.3];
+}
+
+.product-name a {
+  @apply text-[#1f3c88];
+}
+
+.product-price {
+  @apply text-sm mb-2 text-gray-600;
+}
+
+.img-box {
+  @apply w-full h-[150px] flex items-center
+         justify-center mt-auto overflow-hidden;
+}
+
+.img-box img {
+  @apply max-w-full max-h-[140px] object-contain;
+}
+
+/* ================= BUTTON ================= */
+
+.add-btn,
+.form-actions button {
+  @apply inline-block px-6 py-3
+         bg-gradient-to-br from-red-500 to-red-400
+         text-white font-semibold rounded-md
+         transition duration-300 shadow-lg shadow-red-500/30;
+}
+
+.add-btn:hover,
+.form-actions button:hover {
+  @apply from-red-700 to-red-500;
+}
+
+.add-btn-box {
+  @apply flex justify-center gap-4 my-6 flex-wrap;
+}
+
+
+/* ================= FORM ================= */
+
+.add-form {
+  @apply max-w-[800px] mx-auto my-6
+         border border-red-500 rounded-xl
+         px-10 py-6 bg-white shadow-md;
+  animation: slideFadeIn 0.4s ease forwards;
+}
+
+.form-title {
+  @apply bg-red-500 text-white text-[22px] font-bold
+         py-3 text-center mb-6 rounded-t-lg;
+}
+
+.form-row {
+  @apply flex items-center mb-5;
+}
+
+.form-row label {
+  @apply w-[180px] font-semibold text-right
+         mr-4 text-gray-600;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea {
+  @apply flex-1 px-3 py-2 text-sm
+         border border-gray-300 rounded-md;
+}
+
+.form-row textarea {
+  @apply h-[120px] resize-none overflow-y-auto;
+}
+
+.form-actions {
+  @apply text-center mt-6;
+}
+
+/* ================= DETAIL ================= */
+
+.detail-box {
+  @apply mt-8 bg-white rounded-xl shadow-lg overflow-hidden;
+}
+
+.detail-title-bar {
+  @apply bg-red-500 text-white text-[22px] font-bold
+         py-3 text-center;
+}
+
+.detail-content {
+  @apply flex gap-8 p-6 items-start;
+}
+
+.detail-img {
+  @apply w-[35%] flex justify-center;
+}
+
+.detail-img img {
+  @apply max-w-full max-h-[300px] object-contain;
+}
+
+.detail-info {
+  @apply w-[65%] text-left leading-relaxed;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 768px) {
+  .form-row {
+    @apply flex-col items-start;
+  }
+
+  .form-row label {
+    @apply w-full text-left mb-2;
+  }
+
+  .detail-content {
+    @apply flex-col;
+  }
+
+  .detail-img,
+  .detail-info {
+    @apply w-full;
+  }
+}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Thông tin các sản phẩm</title>
-    <link rel="stylesheet" href="/assets/css/index.css?v=10">
+    <link rel="stylesheet" href="/assets/css/output.css">
 </head>
 
 <body>
@@ -33,13 +33,12 @@
             </div>
 
             <div class="img-box">
-                <img src="/assets/images/<?= htmlspecialchars($hinh) ?>">
+                <img src="/assets/images/<?= htmlspecialchars($hinh) ?>" alt="Hình sản phẩm">
             </div>
 
         </div>
         <?php endforeach; ?>
     </div>
-
 
     <!-- ================= NÚT ================= -->
     <div class="add-btn-box">
@@ -50,12 +49,12 @@
 
         <?php if (isset($_GET['ma_sua'])): ?>
 
-            <a href="?action=sua&ma_sua=<?= htmlspecialchars($_GET['ma_sua']) ?>"
+            <a href="?action=sua&ma_sua=<?= htmlspecialchars($_GET['ma_sua']) ?>#formsua"
                class="add-btn">
                 SỬA THÔNG TIN
             </a>
 
-            <form method="POST" style="display:inline-block;">
+            <form method="POST" class="inline-block">
                 <input type="hidden" name="ma_sua"
                        value="<?= htmlspecialchars($_GET['ma_sua']) ?>">
                 <input type="hidden" name="action" value="xoa">
@@ -69,6 +68,58 @@
         <?php endif; ?>
 
     </div>
+
+    <!-- ================= CHI TIẾT ================= -->
+    <?php if (!empty($chitiet)): ?>
+
+    <div class="detail-box" id="chitiet">
+
+        <div class="form-title">CHI TIẾT SẢN PHẨM</div>
+
+        <div class="detail-content">
+
+            <div class="detail-img">
+                <img src="/assets/images/<?= htmlspecialchars($chitiet['hinh'] ?? 'default.jpg') ?>"
+                     alt="Hình sản phẩm">
+            </div>
+
+            <div class="detail-info">
+
+                <p><strong>Tên sữa:</strong>
+                    <?= htmlspecialchars($chitiet['ten_sua'] ?? '') ?>
+                </p>
+
+                <p><strong>Hãng sữa:</strong>
+                    <?= htmlspecialchars($chitiet['ma_hang_sua'] ?? '') ?>
+                </p>
+
+                <p><strong>Loại sữa:</strong>
+                    <?= htmlspecialchars($chitiet['loai_sua'] ?? '') ?>
+                </p>
+
+                <p><strong>Thành phần dinh dưỡng:</strong><br>
+                    <?= nl2br(htmlspecialchars($chitiet['tpdd'] ?? '')) ?>
+                </p>
+
+                <p><strong>Lợi ích:</strong><br>
+                    <?= nl2br(htmlspecialchars($chitiet['loi_ich'] ?? '')) ?>
+                </p>
+
+                <p><strong>Trọng lượng:</strong>
+                    <?= htmlspecialchars($chitiet['trong_luong'] ?? '') ?> gr
+                </p>
+
+                <p><strong>Đơn giá:</strong>
+                    <?= number_format($chitiet['don_gia'] ?? 0, 0, ',', '.') ?> VND
+                </p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <?php endif; ?>
 
 
     <!-- ================= FORM THÊM ================= -->
@@ -148,14 +199,14 @@
     <!-- ================= FORM SỬA ================= -->
     <?php if (isset($_GET['action']) && $_GET['action'] === 'sua' && !empty($chitiet)): ?>
 
-    <div class="add-form">
+    <div class="add-form" id="formsua">
 
         <div class="form-title">SỬA THÔNG TIN SẢN PHẨM</div>
 
         <form method="POST" enctype="multipart/form-data">
 
             <input type="hidden" name="hinh_cu"
-                   value="<?= htmlspecialchars($chitiet['hinh']) ?>">
+                   value="<?= htmlspecialchars($chitiet['hinh'] ?? 'default.jpg') ?>">
 
             <div class="form-row">
                 <label>Mã sữa</label>
@@ -166,7 +217,7 @@
             <div class="form-row">
                 <label>Tên sữa</label>
                 <input type="text" name="ten_sua"
-                       value="<?= htmlspecialchars($chitiet['ten_sua']) ?>">
+                       value="<?= htmlspecialchars($chitiet['ten_sua'] ?? '') ?>">
             </div>
 
             <div class="form-row">
@@ -174,7 +225,7 @@
                 <select name="ma_hang_sua">
                     <?php foreach ($hangSua as $hang): ?>
                         <option value="<?= $hang['ma_hang_sua'] ?>"
-                            <?= $hang['ma_hang_sua'] == $chitiet['ma_hang_sua'] ? 'selected' : '' ?>>
+                            <?= ($hang['ma_hang_sua'] == ($chitiet['ma_hang_sua'] ?? '')) ? 'selected' : '' ?>>
                             <?= $hang['ten_hang_sua'] ?>
                         </option>
                     <?php endforeach; ?>
@@ -184,29 +235,29 @@
             <div class="form-row">
                 <label>Loại sữa</label>
                 <input type="text" name="loai_sua"
-                       value="<?= htmlspecialchars($chitiet['loai_sua']) ?>">
+                       value="<?= htmlspecialchars($chitiet['loai_sua'] ?? '') ?>">
             </div>
 
             <div class="form-row">
                 <label>Trọng lượng</label>
                 <input type="number" name="trong_luong"
-                       value="<?= htmlspecialchars($chitiet['trong_luong']) ?>">
+                       value="<?= htmlspecialchars($chitiet['trong_luong'] ?? '') ?>">
             </div>
 
             <div class="form-row">
                 <label>Đơn giá</label>
                 <input type="number" name="don_gia"
-                       value="<?= htmlspecialchars($chitiet['don_gia']) ?>">
+                       value="<?= htmlspecialchars($chitiet['don_gia'] ?? '') ?>">
             </div>
 
             <div class="form-row">
                 <label>Thành phần dinh dưỡng</label>
-                <textarea name="tpdd"><?= htmlspecialchars($chitiet['thanh_phan_dinh_duong']) ?></textarea>
+                <textarea name="tpdd"><?= htmlspecialchars($chitiet['tpdd'] ?? '') ?></textarea>
             </div>
 
             <div class="form-row">
                 <label>Lợi ích</label>
-                <textarea name="loi_ich"><?= htmlspecialchars($chitiet['loi_ich']) ?></textarea>
+                <textarea name="loi_ich"><?= htmlspecialchars($chitiet['loi_ich'] ?? '') ?></textarea>
             </div>
 
             <div class="form-row">
@@ -223,55 +274,6 @@
         </form>
 
     </div>
-
-    <?php endif; ?>
-
-
-    <!-- ================= CHI TIẾT ================= -->
-    <?php if (isset($_GET['ma_sua']) && !empty($chitiet)
-        && (!isset($_GET['action']) || $_GET['action'] !== 'sua')):
-
-        $hinh_ct = !empty($chitiet['hinh']) ? $chitiet['hinh'] : 'default.jpg';
-    ?>
-
-    <table id="chitiet" class="detail-table">
-
-        <tr>
-            <th colspan="2" class="table-title">
-                <?= htmlspecialchars($chitiet['ten_sua']) ?>
-            </th>
-        </tr>
-
-        <tr>
-            <td class="detail-image">
-                <img src="/assets/images/<?= htmlspecialchars($hinh_ct) ?>">
-            </td>
-
-            <td class="detail-info">
-
-                <div class="detail-block">
-                    <div class="detail-title">Thành phần dinh dưỡng:</div>
-                    <div class="detail-content">
-                        <?= htmlspecialchars($chitiet['thanh_phan_dinh_duong']) ?>
-                    </div>
-                </div>
-
-                <div class="detail-block">
-                    <div class="detail-title">Lợi ích:</div>
-                    <div class="detail-content">
-                        <?= htmlspecialchars($chitiet['loi_ich']) ?>
-                    </div>
-                </div>
-
-                <div class="detail-price">
-                    Trọng lượng: <?= htmlspecialchars($chitiet['trong_luong']) ?> gr -
-                    Đơn giá: <?= number_format($chitiet['don_gia'], 0, ',', '.') ?> VND
-                </div>
-
-            </td>
-        </tr>
-
-    </table>
 
     <?php endif; ?>
 
