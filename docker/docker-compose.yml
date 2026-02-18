@@ -11,9 +11,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    environment:
-      DATABASE_URL: postgres://postgres:postgres@db:5432/ql_ban_sua
-      APP_ENV: local
+    env_file:
+      - ../.env
     volumes:
       - ..:/var/www/html
     networks:

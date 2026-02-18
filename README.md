@@ -1,338 +1,103 @@
-ECMP186-NHOM06
-TECHNICAL DEEP DIVE
-Dockerized PHP Application with Runtime-Validated CI/CD
-1. Giới thiệu kỹ thuật
+# 1. Môi trường và chuẩn hóa
 
-    Tài liệu này phân tích chi tiết kiến trúc và quyết định kỹ thuật của dự án ECMP186-NHOM06. Mục tiêu của hệ thống không chỉ là chạy được ứng dụng PHP trong Docker, mà là xây dựng một pipeline DevOps có khả năng:
+Cần nắm rõ nội dung:
 
-        - Chuẩn hóa môi trường phát triển
+    - Vì sao trước Docker dễ lỗi
+    - “Works on my machine” là gì
+    - Chuẩn hóa bằng container nghĩa là gì
+    - Dev vs Production
 
-        - Xác thực runtime tự động
+File bắt buộc đọc để có nội dung:
 
-        - Triển khai production an toàn
+    - docker-compose.yml
+    - .env
+    - Database.php
 
-        - Quản lý secret đúng chuẩn
+# 2. Multi-stage Dockerfile (Frontend Builder)
 
-        - Tách biệt hoàn toàn Dev và Production
+Cần nắm rõ nội dung:
 
-    Triết lý thiết kế: Build once, deploy many.
-    Docker image được build một lần và cấu hình theo môi trường khi triển khai.
+    - Multi-stage build là gì
+    - Tại sao dùng node:20-alpine
+    - Tại sao không giữ node trong image cuối
+    - COPY --from có ý nghĩa gì
 
-2. Kiến trúc hệ thống
-2.1 Môi trường Development
-   
-    Developer
-    → Docker Compose
-    → App Container (PHP 8.2 + Apache)
-    → PostgreSQL Container
+File bắt buộc đọc để có nội dung:
 
-    Đặc điểm kỹ thuật:
+    - docker/Dockerfile (STAGE 1)
+    - package.json
 
-        - Ứng dụng và database chạy trong hai container riêng biệt
+# 3. PHP Runtime & Security
 
-        - Docker Compose quản lý network nội bộ giữa các service
+Cần nắm rõ nội dung:
 
-        - Volume được dùng để persist dữ liệu database
+    - php:8.2-apache là gì
+    - docker-php-ext-install pdo_pgsql
+    - OPcache
+    - Apache DocumentRoot
+    - Healthcheck
+    - ServerTokens Prod
 
-        - Có healthcheck cho PostgreSQL
+File bắt buộc đọc để có nội dung:
 
-    Lợi ích:
+    - docker/Dockerfile (STAGE 2)
 
-        - Tái tạo môi trường chỉ với một lệnh docker compose up
+# 4. Docker Compose Architecture
 
-        - Loại bỏ phụ thuộc cấu hình máy cá nhân
+Cần nắm rõ nội dung:
 
-        - Giảm rủi ro lỗi “chạy được trên máy tôi”
+    - services: app & db
+    - depends_on condition service_healthy
+    - Volume db_data
+    - Network bridge
+    - Tại sao local mount source code
 
-    2.2 Môi trường Production
+File bắt buộc đọc để có nội dung:
 
-    GitHub
-    → CI (Build + Runtime Validation)
-    → CD (Deploy khi CI thành công)
-    → Fly.io
-    → PostgreSQL Production
+    - docker-compose.yml
+    - init.sql
 
-    Đặc điểm:
+# 5. CI Pipeline
 
-        - CI xác thực runtime thực tế
+Cần nắm rõ nội dung:
 
-        - CD chỉ chạy khi CI thành công
+    - Trigger pull_request & push main
+    - docker build
+    - docker run
+    - curl health check
+    - exit 1
 
-        - Secret được inject theo môi trường
+File bắt buộc đọc để có nội dung:
 
-        - Có healthcheck production
+    - .github/workflows/ci.yml
 
-4. Phân tích Dockerfile
-    Base image:
+# 6. CD Pipeline
 
-    php:8.2-apache
+Cần nắm rõ nội dung:
 
-    Lý do lựa chọn:
+    - workflow_run
+    - Tại sao tách CI & CD
+    - Điều kiện success
+    - flyctl deploy
+    - FLY_API_TOKEN
 
-        - Phiên bản ổn định
+File bắt buộc đọc để có nội dung:
 
-        - Tích hợp Apache
+    - .github/workflows/cd.yml
+    - fly.toml
 
-        - Phù hợp với mô hình PHP truyền thống
+# 7. Database & Environment Config
 
-    Các bước chính:
+Cần nắm rõ nội dung:
 
-        - Cài đặt libpq-dev
+    - DATABASE_URL format
+    - parse_url
+    - getenv
+    - init.sql auto seed
+    - Tại sao không hardcode
 
-        - docker-php-ext-install pdo pdo_pgsql
+File bắt buộc đọc để có nội dung:
 
-        - Bật mod_rewrite
-
-    Ý nghĩa kỹ thuật:
-
-        - pdo_pgsql cho phép kết nối PostgreSQL
-
-        - mod_rewrite hỗ trợ routing linh hoạt
-
-        - Không cài đặt thừa dependency để giữ image gọn nhẹ
-
-    Thiết kế tuân thủ nguyên tắc:
-
-        - Một container chỉ phục vụ một trách nhiệm
-
-        - Không nhúng database vào image ứng dụng
-
-    Có thể mở rộng:
-
-        - Sử dụng multi-stage build để giảm image size
-
-        - Thay Apache bằng php-fpm + nginx nếu cần tối ưu hiệu năng
-
-5. Docker Compose – Thiết kế môi trường Local
-    Cấu trúc gồm:
-
-    Service: app
-    Service: db
-
-    db:
-        - image postgres:15
-
-        - environment variables
-
-        - volume để lưu dữ liệu
-
-        - healthcheck kiểm tra trạng thái DB
-
-    app:
-
-        - build từ Dockerfile
-
-        - depends_on db
-
-        - sử dụng .env
-
-        - map port 8080:80
-
-    Điểm quan trọng:
-
-    Healthcheck database giúp đảm bảo app không chạy logic trước khi DB sẵn sàng.
-
-    Compose tạo một network nội bộ để app kết nối database thông qua service name.
-
-6. Cơ chế khởi tạo Database
-    Database được tự động khởi tạo khi container start lần đầu.
-
-    Các cách tiếp cận thường dùng:
-
-        - Mount file SQL vào thư mục docker-entrypoint-initdb.d
-        - Hoặc để ứng dụng kiểm tra và tạo bảng nếu chưa tồn tại
-    
-    Lợi ích:
-        - Không cần chạy script thủ công
-
-        - CI có thể spin-up môi trường mới hoàn toàn
-
-        - Production có thể tái tạo hệ thống
-
-7. CI Pipeline – Runtime Validation
-    Mục tiêu của CI không chỉ là build thành công mà là xác thực runtime thực tế.
-    Luồng CI:
-        Build Docker image
-
-        Khởi động database container
-
-        Khởi động app container
-
-        Chờ database healthy
-
-        Gửi HTTP request tới ứng dụng
-
-        Kiểm tra HTTP status 200
-
-        Shutdown container
-
-    Điểm quan trọng:
-
-    Build success không đồng nghĩa runtime success.
-
-    Lỗi có thể xảy ra dù build thành công:
-
-        - Sai ENV
-
-        - Sai DB host
-
-        - Thiếu extension
-
-        - Migration lỗi
-
-        - Lỗi kết nối database
-
-    Pipeline hiện tại phát hiện được các lỗi đó trước khi merge.
-
-    Đây là integration-level validation.
-
-8. CD Pipeline – Triển khai Production
-    CD chỉ chạy khi:
-
-        - Push lên branch main
-        - CI thành công
-
-    Luồng CD:
-
-        Authenticate với Fly.io
-
-        Build image production
-
-        Deploy lên Fly
-
-        Inject biến môi trường bằng fly secrets
-
-        Fly thực hiện healthcheck
-
-    Ý nghĩa:
-
-        - Không deploy code lỗi
-
-        - Secret không nằm trong repository
-
-        - Production có thể restart nếu unhealthy
-
-9. Secret Management Strategy
-    Nguyên tắc:
-
-        - Không commit .env
-
-        - .env.example chỉ chứa cấu trúc
-
-        - Production dùng fly secrets
-
-    Tách biệt:
-
-    Local:
-
-        - .env riêng
-
-    Repository:
-
-        - Không chứa secret
-
-    Production:
-
-        - Secret lưu trên Fly
-
-    Lợi ích:
-
-        - Có thể rotate secret mà không rebuild image
-
-        - Image không chứa thông tin nhạy cảm
-
-        - An toàn khi open-source repo
-
-10. Tách biệt Environment
-    Development:
-
-        - Docker Compose
-
-        - Database local
-
-        - ENV local
-
-    Production:
-
-        - Fly infrastructure
-
-        - Secret riêng
-
-        - Database production riêng
-
-    Không dùng chung database.
-    Không dùng chung cấu hình.
-
-    Điều này ngăn:
-
-        - Dev ghi đè dữ liệu production
-
-        - Lộ thông tin nhạy cảm
-
-11. Failure Scenario Analysis
-10.1 Database không khởi động
-
-    CI sẽ fail khi healthcheck DB không pass.
-
-10.2 App không kết nối được DB
-
-    HTTP request trong CI sẽ trả lỗi, pipeline fail.
-
-10.3 Production bị crash
-
-    Fly healthcheck sẽ đánh dấu unhealthy và restart instance.
-
-10.4 Secret sai
-
-    Ứng dụng không connect DB → healthcheck fail → deployment không ổn định.
-
-11. Khả năng mở rộng
-    Hệ thống có thể nâng cấp thêm:
-
-        - Unit test stage
-
-        - Integration test nâng cao
-
-        - Staging environment
-
-        - Container registry riêng
-
-        - Monitoring (Prometheus, Grafana)
-
-        - Logging tập trung
-
-        - Database migration tool
-
-    Kiến trúc hiện tại đủ linh hoạt để mở rộng theo hướng microservice nếu cần.
-
-12. Năng lực DevOps thể hiện
-    - Thiết kế multi-container system
-
-    - Viết Dockerfile chuẩn production
-
-    - Runtime validation trong CI
-
-    - CD có điều kiện
-
-    - Tách biệt environment
-
-    - Quản lý secret an toàn
-
-    - Healthcheck production
-
-    - Hiểu rõ sự khác biệt giữa build success và runtime success
-
-13. Kết luận kỹ thuật
-    Dự án này không chỉ dừng ở mức container hóa, mà mô phỏng một pipeline DevOps thực tế:
-
-        - Chuẩn hóa môi trường
-
-        - Kiểm tra tự động có dependency
-
-        - Triển khai có kiểm soát
-
-        - Bảo mật cấu hình
-
-        - Đảm bảo ổn định production
-
-    Ở mức độ kỹ thuật, đây là một implementation DevOps entry-to-mid level, có thể mở rộng lên hệ thống production phức tạp hơn khi bổ sung thêm testing, monitoring và observability.
+    - Database.php
+    - .env
+    - init.sql
