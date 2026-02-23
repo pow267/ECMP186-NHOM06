@@ -1,9 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../models/SuaModel.php';
+/** @noinspection PhpUndefinedClassInspection */
 
 class SuaController
 {
+    /** @var SuaModel */
     private $model;
     private $uploadDir;
 
@@ -12,25 +14,45 @@ class SuaController
         session_set_cookie_params([
             'lifetime' => 0,
             'path' => '/',
-            'httponly' => true
+            'httponly' => true,
+            'secure' => isset($_SERVER['HTTPS'])
         ]);
 
         session_start();
+
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
 
         $this->model = new SuaModel();
         $this->uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/images/';
     }
 
+    /* ================= UTIL ================= */
+
+    private function validateCsrf()
+    {
+        if (
+            !isset($_POST['csrf_token']) ||
+            !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+        ) {
+            die("CSRF validation failed");
+        }
+    }
+
+    private function setFlash($msg)
+    {
+        $_SESSION['flash'] = $msg;
+    }
+
     private function safeUnlink($filename)
     {
-        if (empty($filename) || $filename === 'default.jpg') {
-            return;
-        }
+        if (empty($filename) || $filename === 'default.jpg') return;
 
         $realBase = realpath($this->uploadDir);
         $realFile = realpath($this->uploadDir . $filename);
 
-        if ($realFile && $realBase && strpos($realFile, $realBase) === 0) {
+        if ($realFile && strpos($realFile, $realBase) === 0) {
             unlink($realFile);
         }
     }
@@ -46,9 +68,9 @@ class SuaController
         }
 
         $mime = mime_content_type($_FILES['hinh']['tmp_name']);
-        $allowedMime = ['image/jpeg', 'image/png'];
+        $allowed = ['image/jpeg','image/png','image/webp'];
 
-        if (!in_array($mime, $allowedMime)) {
+        if (!in_array($mime, $allowed)) {
             die("Định dạng file không hợp lệ");
         }
 
@@ -56,60 +78,62 @@ class SuaController
             mkdir($this->uploadDir, 0755, true);
         }
 
-        $ext = $mime === 'image/png' ? 'png' : 'jpg';
-        $newFileName = uniqid('milk_', true) . '.' . $ext;
-        $targetPath = $this->uploadDir . $newFileName;
+        $ext = match ($mime) {
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => 'jpg'
+        };
 
-        if (move_uploaded_file($_FILES['hinh']['tmp_name'], $targetPath)) {
-            return $newFileName;
+        $newName = uniqid('milk_', true) . '.' . $ext;
+        $target = $this->uploadDir . $newName;
+
+        if (move_uploaded_file($_FILES['hinh']['tmp_name'], $target)) {
+            return $newName;
         }
 
         return 'default.jpg';
     }
 
+    private function sanitize($input)
+    {
+        return [
+            'ma_sua' => trim($input['ma_sua']),
+            'ten_sua' => trim($input['ten_sua']),
+            'ma_hang_sua' => trim($input['ma_hang_sua']),
+            'loai_sua' => trim($input['loai_sua']),
+            'trong_luong' => (int)$input['trong_luong'],
+            'don_gia' => (int)$input['don_gia'],
+            'tpdd' => trim($input['tpdd']),
+            'loi_ich' => trim($input['loi_ich'])
+        ];
+    }
+
+    /* ================= MAIN ================= */
+
     public function index()
     {
-        /* ===================== LOGOUT ===================== */
-
-        if (isset($_GET['action']) && $_GET['action'] === 'logout') {
-
+        if (($_GET['action'] ?? '') === 'logout') {
             $_SESSION = [];
-
-            if (ini_get("session.use_cookies")) {
-                $params = session_get_cookie_params();
-                setcookie(
-                    session_name(),
-                    '',
-                    time() - 42000,
-                    $params["path"],
-                    $params["domain"],
-                    $params["secure"],
-                    $params["httponly"]
-                );
-            }
-
             session_destroy();
-
             header("Location: /");
             exit;
         }
 
-        /* ===================== LOGIN ===================== */
-
         if (isset($_POST['btn_login'])) {
 
-            $username = $_POST['username'] ?? '';
-            $password = $_POST['password'] ?? '';
+            $username = trim($_POST['username'] ?? '');
+            $password = trim($_POST['password'] ?? '');
 
             if ($username === 'admin' && $password === '123') {
                 $_SESSION['logged_in'] = true;
+                $this->setFlash("Đăng nhập thành công!");
                 header("Location: /");
                 exit;
-            } else {
-                $error = "Sai tên đăng nhập hoặc mật khẩu!";
-                require __DIR__ . '/../views/login.php';
-                return;
             }
+
+            $error = "Sai tài khoản hoặc mật khẩu!";
+            require __DIR__ . '/../views/login.php';
+            return;
         }
 
         if (!isset($_SESSION['logged_in'])) {
@@ -117,104 +141,18 @@ class SuaController
             return;
         }
 
-        /* ===================== XÓA ===================== */
+        /* ===== LOAD WITH PAGINATION ===== */
 
-        if ($_SERVER['REQUEST_METHOD'] === 'POST'
-            && isset($_POST['action'])
-            && $_POST['action'] === 'xoa'
-            && !empty($_POST['ma_sua'])) {
+        $perPage = 9;
+        $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 
-            try {
-                $sua = $this->model->getById($_POST['ma_sua']);
+        $totalProducts = $this->model->countAll();
+        $totalPages = ceil($totalProducts / $perPage);
 
-                if ($sua && !empty($sua['hinh'])) {
-                    $this->safeUnlink($sua['hinh']);
-                }
+        $offset = ($page - 1) * $perPage;
 
-                $this->model->delete($_POST['ma_sua']);
-            } catch (Exception $e) {
-                error_log($e->getMessage());
-                die("Có lỗi xảy ra.");
-            }
+        $products = $this->model->getPaginated($perPage, $offset);
 
-            header("Location: /");
-            exit;
-        }
-
-        /* ===================== THÊM ===================== */
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST'
-            && isset($_POST['btn_them'])) {
-
-            $hinh = $this->handleUpload();
-
-            $data = [
-                'ma_sua' => $_POST['ma_sua'],
-                'ten_sua' => $_POST['ten_sua'],
-                'ma_hang_sua' => $_POST['ma_hang_sua'],
-                'loai_sua' => $_POST['loai_sua'],
-                'trong_luong' => $_POST['trong_luong'],
-                'don_gia' => $_POST['don_gia'],
-                'tpdd' => $_POST['tpdd'],
-                'loi_ich' => $_POST['loi_ich'],
-                'hinh' => $hinh
-            ];
-
-            try {
-                $this->model->insert($data);
-            } catch (Exception $e) {
-                error_log($e->getMessage());
-                die("Có lỗi xảy ra.");
-            }
-
-            header("Location: /?ma_sua=" . $_POST['ma_sua']);
-            exit;
-        }
-
-        /* ===================== SỬA ===================== */
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST'
-            && isset($_POST['btn_sua'])) {
-
-            $oldImage = $_POST['hinh_cu'] ?? 'default.jpg';
-            $hinh = $oldImage;
-
-            if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === 0) {
-
-                $newImage = $this->handleUpload();
-
-                if ($newImage !== 'default.jpg') {
-                    $this->safeUnlink($oldImage);
-                    $hinh = $newImage;
-                }
-            }
-
-            $data = [
-                'ma_sua' => $_POST['ma_sua'],
-                'ten_sua' => $_POST['ten_sua'],
-                'ma_hang_sua' => $_POST['ma_hang_sua'],
-                'loai_sua' => $_POST['loai_sua'],
-                'trong_luong' => $_POST['trong_luong'],
-                'don_gia' => $_POST['don_gia'],
-                'tpdd' => $_POST['tpdd'],
-                'loi_ich' => $_POST['loi_ich'],
-                'hinh' => $hinh
-            ];
-
-            try {
-                $this->model->update($data);
-            } catch (Exception $e) {
-                error_log($e->getMessage());
-                die("Có lỗi xảy ra.");
-            }
-
-            header("Location: /?ma_sua=" . $_POST['ma_sua']);
-            exit;
-        }
-
-        /* ===================== LOAD DATA ===================== */
-
-        $products = $this->model->getAll();
         $hangSua = $this->model->getHangSua();
         $ma_sua_auto = $this->model->generateMaSua();
 
