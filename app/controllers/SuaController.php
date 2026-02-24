@@ -81,7 +81,7 @@ class SuaController
             return 'default.jpg';
         }
 
-        // Đảm bảo thư mục tồn tại
+       
         if (!is_dir($this->uploadDir)) {
             if (!mkdir($this->uploadDir, 0755, true) && !is_dir($this->uploadDir)) {
                 $_SESSION['errors'][] = "Không thể tạo thư mục upload";
