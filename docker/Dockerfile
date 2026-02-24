@@ -61,7 +61,12 @@ COPY --from=frontend-builder \
 # Remove docker folder
 RUN rm -rf /var/www/html/docker
 
-# Permissions
+# ===== UPLOAD PERMISSION =====
+RUN mkdir -p /var/www/html/public/assets/images && \
+    chown -R www-data:www-data /var/www/html/public/assets/images && \
+    chmod -R 775 /var/www/html/public/assets/images
+
+# Ownership toàn project
 RUN chown -R www-data:www-data /var/www/html
 
 # Security hardening
