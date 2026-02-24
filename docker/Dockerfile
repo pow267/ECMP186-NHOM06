@@ -5,14 +5,11 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
-# Copy package files
 COPY package*.json ./
 RUN npm install
 
-# Copy source
 COPY . .
 
-# Build CSS using Tailwind CLI
 RUN npx tailwindcss \
     -i public/assets/css/input.css \
     -o public/assets/css/output.css \
@@ -24,22 +21,21 @@ RUN npx tailwindcss \
 # ==========================================
 FROM php:8.2-apache
 
-# ===== SYSTEM DEPENDENCIES =====
+# Cài extension cần thiết
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-        libpq-dev \
-        curl \
+        libpq-dev curl \
     && docker-php-ext-install pdo pdo_pgsql opcache \
     && a2enmod rewrite \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# ===== OPcache (DEV friendly) =====
+# Bật OPcache
 RUN echo "opcache.enable=1" >> /usr/local/etc/php/conf.d/opcache.ini \
     && echo "opcache.validate_timestamps=1" >> /usr/local/etc/php/conf.d/opcache.ini \
     && echo "opcache.revalidate_freq=0" >> /usr/local/etc/php/conf.d/opcache.ini
 
-# ===== APACHE CONFIG =====
+
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
 
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
@@ -50,28 +46,24 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
 
 WORKDIR /var/www/html
 
-# Copy PHP source
+# Copy source code
 COPY . .
 
-# Copy built CSS from stage 1
+# Copy CSS đã build từ stage 1
 COPY --from=frontend-builder \
     /app/public/assets/css/output.css \
     /var/www/html/public/assets/css/output.css
 
-# Remove docker folder
-RUN rm -rf /var/www/html/docker
+# Tạo thư mục cho local volume
+RUN mkdir -p /var/www/html/public/assets/images \
+    && chown -R www-data:www-data /var/www/html/public/assets/images
 
-# ===== UPLOAD PERMISSION =====
-RUN mkdir -p /var/www/html/public/assets/images && \
-    chown -R www-data:www-data /var/www/html/public/assets/images && \
-    chmod -R 775 /var/www/html/public/assets/images
+# Tạo thư mục cho Fly volume 
+RUN mkdir -p /data/images || true
 
-# Ownership toàn project
-RUN chown -R www-data:www-data /var/www/html
-
-# Security hardening
-RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf && \
-    echo "ServerSignature Off" >> /etc/apache2/apache2.conf
+# Bảo mật Apache
+RUN echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \
+    && echo "ServerSignature Off" >> /etc/apache2/apache2.conf
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
@@ -79,4 +71,4 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
+CMD sh -c "rm -rf /var/www/html/public/assets/images && ln -s /data/images /var/www/html/public/assets/images && apache2-foreground"

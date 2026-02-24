@@ -10,8 +10,8 @@ primary_region = 'sin'
   dockerfile = 'docker/Dockerfile'
 
 [[mounts]]
-  source = 'uploads'
-  destination = '/var/www/html/public/assets/images'
+  source="uploads"
+  destination="/data"
 
 [http_service]
   internal_port = 80

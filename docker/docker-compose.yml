@@ -14,8 +14,7 @@ services:
       db:
         condition: service_healthy
     volumes:
-      # DEV mode: mount source code
-      - ..:/var/www/html
+      - images_data:/var/www/html/public/assets/images
     networks:
       - milk_network
     restart: unless-stopped
@@ -41,6 +40,7 @@ services:
 
 volumes:
   db_data:
+  images_data:
 
 networks:
   milk_network:

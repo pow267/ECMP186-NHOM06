@@ -23,7 +23,15 @@ class SuaController
         }
 
         $this->model = new SuaModel();
-        $this->uploadDir = __DIR__ . '/../../public/assets/images/';
+
+        // ===== UPLOAD DIR CONFIG =====
+        $upload = getenv('UPLOAD_DIR');
+
+        if (!$upload) {
+            die('UPLOAD_DIR is not configured.');
+        }
+
+        $this->uploadDir = rtrim($upload, '/') . '/';
     }
 
     /* ================= UTIL ================= */
@@ -73,8 +81,12 @@ class SuaController
             return 'default.jpg';
         }
 
+        // Đảm bảo thư mục tồn tại
         if (!is_dir($this->uploadDir)) {
-            mkdir($this->uploadDir, 0755, true);
+            if (!mkdir($this->uploadDir, 0755, true) && !is_dir($this->uploadDir)) {
+                $_SESSION['errors'][] = "Không thể tạo thư mục upload";
+                return 'default.jpg';
+            }
         }
 
         $ext = match ($mime) {
@@ -97,7 +109,6 @@ class SuaController
 
     public function index(): void
     {
-        // LOGOUT
         if (($_GET['action'] ?? '') === 'logout') {
             $_SESSION = [];
             session_destroy();
@@ -105,9 +116,7 @@ class SuaController
             exit;
         }
 
-        // LOGIN
         if (isset($_POST['btn_login'])) {
-
             $username = trim($_POST['username'] ?? '');
             $password = trim($_POST['password'] ?? '');
 
@@ -128,26 +137,22 @@ class SuaController
             return;
         }
 
-        // ADD
         if (isset($_POST['btn_them'])) {
             $this->store();
             return;
         }
 
-        // UPDATE
         if (isset($_POST['btn_capnhat'])) {
             $this->update();
             return;
         }
 
-        // DELETE (POST + CSRF)
         if (isset($_POST['btn_xoa'])) {
             $this->validateCsrf();
             $this->delete($_POST['ma_sua']);
             return;
         }
 
-        // PAGINATION
         $perPage = 9;
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $offset = ($page - 1) * $perPage;
@@ -201,7 +206,6 @@ class SuaController
             exit;
         }
 
-        // Nếu có ảnh mới
         if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === UPLOAD_ERR_OK) {
 
             $newImage = $this->handleUpload();
