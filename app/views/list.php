@@ -316,7 +316,7 @@
             </div>
 
             <div class="form-actions">
-                <button type="submit" name="btn_sua">
+                <button type="submit" name="btn_capnhat">
                     Cập nhật
                 </button>
             </div>

@@ -1,13 +1,11 @@
 <?php
 
 require_once __DIR__ . '/../models/SuaModel.php';
-/** @noinspection PhpUndefinedClassInspection */
 
 class SuaController
 {
-    /** @var SuaModel */
-    private $model;
-    private $uploadDir;
+    private SuaModel $model;
+    private string $uploadDir;
 
     public function __construct()
     {
@@ -25,53 +23,54 @@ class SuaController
         }
 
         $this->model = new SuaModel();
-        $this->uploadDir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/assets/images/';
+        $this->uploadDir = __DIR__ . '/../../public/assets/images/';
     }
 
     /* ================= UTIL ================= */
 
-    private function validateCsrf()
+    private function validateCsrf(): void
     {
         if (
             !isset($_POST['csrf_token']) ||
             !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
         ) {
-            die("CSRF validation failed");
+            $_SESSION['errors'] = ["CSRF validation failed"];
+            header("Location: /");
+            exit;
         }
     }
 
-    private function setFlash($msg)
+    private function sanitize(array $input): array
     {
-        $_SESSION['flash'] = $msg;
+        return [
+            'ma_sua' => trim($input['ma_sua'] ?? ''),
+            'ten_sua' => trim($input['ten_sua'] ?? ''),
+            'ma_hang_sua' => trim($input['ma_hang_sua'] ?? ''),
+            'loai_sua' => trim($input['loai_sua'] ?? ''),
+            'trong_luong' => (int)($input['trong_luong'] ?? 0),
+            'don_gia' => (int)($input['don_gia'] ?? 0),
+            'tpdd' => trim($input['tpdd'] ?? ''),
+            'loi_ich' => trim($input['loi_ich'] ?? '')
+        ];
     }
 
-    private function safeUnlink($filename)
+    private function handleUpload(): string
     {
-        if (empty($filename) || $filename === 'default.jpg') return;
-
-        $realBase = realpath($this->uploadDir);
-        $realFile = realpath($this->uploadDir . $filename);
-
-        if ($realFile && strpos($realFile, $realBase) === 0) {
-            unlink($realFile);
-        }
-    }
-
-    private function handleUpload()
-    {
-        if (!isset($_FILES['hinh']) || $_FILES['hinh']['error'] !== 0) {
+        if (!isset($_FILES['hinh']) || $_FILES['hinh']['error'] !== UPLOAD_ERR_OK) {
             return 'default.jpg';
         }
 
         if ($_FILES['hinh']['size'] > 2 * 1024 * 1024) {
-            die("File quá lớn (tối đa 2MB)");
+            $_SESSION['errors'][] = "File quá lớn (tối đa 2MB)";
+            return 'default.jpg';
         }
 
         $mime = mime_content_type($_FILES['hinh']['tmp_name']);
-        $allowed = ['image/jpeg','image/png','image/webp'];
+        $allowed = ['image/jpeg', 'image/png', 'image/webp'];
 
         if (!in_array($mime, $allowed)) {
-            die("Định dạng file không hợp lệ");
+            $_SESSION['errors'][] = "Định dạng file không hợp lệ";
+            return 'default.jpg';
         }
 
         if (!is_dir($this->uploadDir)) {
@@ -94,24 +93,11 @@ class SuaController
         return 'default.jpg';
     }
 
-    private function sanitize($input)
-    {
-        return [
-            'ma_sua' => trim($input['ma_sua']),
-            'ten_sua' => trim($input['ten_sua']),
-            'ma_hang_sua' => trim($input['ma_hang_sua']),
-            'loai_sua' => trim($input['loai_sua']),
-            'trong_luong' => (int)$input['trong_luong'],
-            'don_gia' => (int)$input['don_gia'],
-            'tpdd' => trim($input['tpdd']),
-            'loi_ich' => trim($input['loi_ich'])
-        ];
-    }
-
     /* ================= MAIN ================= */
 
-    public function index()
+    public function index(): void
     {
+        // LOGOUT
         if (($_GET['action'] ?? '') === 'logout') {
             $_SESSION = [];
             session_destroy();
@@ -119,6 +105,7 @@ class SuaController
             exit;
         }
 
+        // LOGIN
         if (isset($_POST['btn_login'])) {
 
             $username = trim($_POST['username'] ?? '');
@@ -126,7 +113,7 @@ class SuaController
 
             if ($username === 'admin' && $password === '123') {
                 $_SESSION['logged_in'] = true;
-                $this->setFlash("Đăng nhập thành công!");
+                $_SESSION['flash'] = "Đăng nhập thành công!";
                 header("Location: /");
                 exit;
             }
@@ -141,18 +128,33 @@ class SuaController
             return;
         }
 
-        /* ===== LOAD WITH PAGINATION ===== */
+        // ADD
+        if (isset($_POST['btn_them'])) {
+            $this->store();
+            return;
+        }
 
+        // UPDATE
+        if (isset($_POST['btn_capnhat'])) {
+            $this->update();
+            return;
+        }
+
+        // DELETE
+        if (isset($_GET['delete'])) {
+            $this->delete($_GET['delete']);
+            return;
+        }
+
+        // PAGINATION
         $perPage = 9;
         $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-
-        $totalProducts = $this->model->countAll();
-        $totalPages = ceil($totalProducts / $perPage);
-
         $offset = ($page - 1) * $perPage;
 
-        $products = $this->model->getPaginated($perPage, $offset);
+        $totalProducts = $this->model->countAll();
+        $totalPages = max(1, ceil($totalProducts / $perPage));
 
+        $products = $this->model->getPaginated($perPage, $offset);
         $hangSua = $this->model->getHangSua();
         $ma_sua_auto = $this->model->generateMaSua();
 
@@ -162,5 +164,99 @@ class SuaController
         }
 
         require __DIR__ . '/../views/list.php';
+    }
+
+    /* ================= STORE ================= */
+
+    private function store(): void
+    {
+        $this->validateCsrf();
+
+        $data = $this->sanitize($_POST);
+
+        $data['hinh'] = $this->handleUpload();
+
+        $result = $this->model->insert($data);
+
+        if ($result) {
+            $_SESSION['flash'] = "Thêm sản phẩm thành công!";
+        } else {
+            $_SESSION['errors'] = ["Có lỗi xảy ra khi thêm sản phẩm"];
+        }
+
+        header("Location: /?page=1");
+        exit;
+    }
+
+    /* ================= UPDATE ================= */
+
+    private function update(): void
+    {
+        $this->validateCsrf();
+
+        $data = $this->sanitize($_POST);
+
+        $current = $this->model->getById($data['ma_sua']);
+
+        if (!$current) {
+            $_SESSION['errors'] = ["Sản phẩm không tồn tại"];
+            header("Location: /");
+            exit;
+        }
+
+        // Nếu có ảnh mới
+        if (isset($_FILES['hinh']) && $_FILES['hinh']['error'] === UPLOAD_ERR_OK) {
+
+            $newImage = $this->handleUpload();
+
+            if ($newImage !== 'default.jpg') {
+
+                // Xóa ảnh cũ
+                if (!empty($current['hinh']) && $current['hinh'] !== 'default.jpg') {
+                    $oldPath = $this->uploadDir . $current['hinh'];
+                    if (file_exists($oldPath)) {
+                        unlink($oldPath);
+                    }
+                }
+
+                $data['hinh'] = $newImage;
+            } else {
+                $data['hinh'] = $current['hinh'];
+            }
+
+        } else {
+            $data['hinh'] = $current['hinh'];
+        }
+
+        $result = $this->model->update($data);
+
+        if ($result) {
+            $_SESSION['flash'] = "Cập nhật thành công!";
+        } else {
+            $_SESSION['errors'] = ["Cập nhật thất bại"];
+        }
+
+        header("Location: /?ma_sua=" . $data['ma_sua']);
+        exit;
+    }
+
+    /* ================= DELETE ================= */
+
+    private function delete(string $ma_sua): void
+    {
+        $current = $this->model->getById($ma_sua);
+
+        if ($current && $current['hinh'] !== 'default.jpg') {
+            $path = $this->uploadDir . $current['hinh'];
+            if (file_exists($path)) {
+                unlink($path);
+            }
+        }
+
+        $this->model->delete($ma_sua);
+
+        $_SESSION['flash'] = "Xóa sản phẩm thành công!";
+        header("Location: /");
+        exit;
     }
 }
