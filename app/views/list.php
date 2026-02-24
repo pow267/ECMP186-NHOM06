@@ -98,14 +98,15 @@
                class="add-btn">
                 SỬA THÔNG TIN
             </a>
-
             <form method="POST" class="inline-block">
                 <input type="hidden" name="ma_sua"
-                       value="<?= htmlspecialchars($_GET['ma_sua']) ?>">
-                <input type="hidden" name="action" value="xoa">
+                    value="<?= htmlspecialchars($_GET['ma_sua']) ?>">
+
                 <input type="hidden" name="csrf_token"
-                       value="<?= $_SESSION['csrf_token'] ?>">
+                    value="<?= $_SESSION['csrf_token'] ?>">
+
                 <button type="submit"
+                        name="btn_xoa"
                         class="add-btn"
                         onclick="return confirm('Bạn có chắc muốn xóa sản phẩm này?')">
                     XÓA SẢN PHẨM

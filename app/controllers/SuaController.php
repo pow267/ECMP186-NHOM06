@@ -140,9 +140,10 @@ class SuaController
             return;
         }
 
-        // DELETE
-        if (isset($_GET['delete'])) {
-            $this->delete($_GET['delete']);
+        // DELETE (POST + CSRF)
+        if (isset($_POST['btn_xoa'])) {
+            $this->validateCsrf();
+            $this->delete($_POST['ma_sua']);
             return;
         }
 
@@ -173,16 +174,13 @@ class SuaController
         $this->validateCsrf();
 
         $data = $this->sanitize($_POST);
-
         $data['hinh'] = $this->handleUpload();
 
         $result = $this->model->insert($data);
 
-        if ($result) {
-            $_SESSION['flash'] = "Thêm sản phẩm thành công!";
-        } else {
-            $_SESSION['errors'] = ["Có lỗi xảy ra khi thêm sản phẩm"];
-        }
+        $_SESSION['flash'] = $result
+            ? "Thêm sản phẩm thành công!"
+            : "Có lỗi xảy ra khi thêm sản phẩm";
 
         header("Location: /?page=1");
         exit;
@@ -195,7 +193,6 @@ class SuaController
         $this->validateCsrf();
 
         $data = $this->sanitize($_POST);
-
         $current = $this->model->getById($data['ma_sua']);
 
         if (!$current) {
@@ -211,7 +208,6 @@ class SuaController
 
             if ($newImage !== 'default.jpg') {
 
-                // Xóa ảnh cũ
                 if (!empty($current['hinh']) && $current['hinh'] !== 'default.jpg') {
                     $oldPath = $this->uploadDir . $current['hinh'];
                     if (file_exists($oldPath)) {
@@ -230,11 +226,9 @@ class SuaController
 
         $result = $this->model->update($data);
 
-        if ($result) {
-            $_SESSION['flash'] = "Cập nhật thành công!";
-        } else {
-            $_SESSION['errors'] = ["Cập nhật thất bại"];
-        }
+        $_SESSION['flash'] = $result
+            ? "Cập nhật thành công!"
+            : "Cập nhật thất bại";
 
         header("Location: /?ma_sua=" . $data['ma_sua']);
         exit;
