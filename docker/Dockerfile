@@ -71,4 +71,4 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 
 EXPOSE 80
 
-CMD sh -c "rm -rf /var/www/html/public/assets/images && ln -s /data/images /var/www/html/public/assets/images && apache2-foreground"
+CMD ["apache2-foreground"]
