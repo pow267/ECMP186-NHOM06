@@ -27,13 +27,7 @@
         </script>
     <?php endif; ?>
 
-    <!-- SEARCH -->
-    <div class="search-section">
-        <input type="text"
-               id="searchInput"
-               placeholder="Tìm kiếm sản phẩm..."
-               class="search-input">
-    </div>
+
 
     <!-- ================= DANH SÁCH ================= -->
     <div class="product-grid">
