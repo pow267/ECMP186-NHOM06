@@ -24,6 +24,7 @@ jobs:
           context: .
           file: docker/Dockerfile
           push: false
+          load: true
           tags: milk_app:test
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -33,7 +34,7 @@ jobs:
         run: |
           docker run -d -p 8080:80 --name test_app milk_app:test
 
-      # ===== Chờ ứng dụng khởi động =====
+      # ===== Kiểm tra ứng dụng đã sẵn sàng =====
       - name: Kiểm tra ứng dụng đã sẵn sàng
         run: |
           for i in {1..20}; do
