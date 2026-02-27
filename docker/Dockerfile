@@ -71,9 +71,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 
 EXPOSE 80
 
-CMD ["apache2-foreground"]
-
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-CMD ["/entrypoint.sh"]
+ENTRYPOINT ["/entrypoint.sh"]
