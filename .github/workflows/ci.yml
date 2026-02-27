@@ -3,55 +3,58 @@ name: CI - Build & Test
 on:
   pull_request:
     branches: [ main ]
-  push:
-    branches: [ main ]
 
 jobs:
   build-test:
     runs-on: ubuntu-latest
 
     steps:
-      # ===== Checkout source =====
-      - name: Checkout source
+      # ===== Lấy mã nguồn =====
+      - name: Lấy mã nguồn từ repository
         uses: actions/checkout@v4
 
-      # ===== Debug structure (giữ để dễ trace lỗi) =====
-      - name: Debug - Show project structure
-        run: |
-          echo "===== ROOT ====="
-          ls -la
-          echo "===== DOCKER FOLDER ====="
-          ls -la docker
-
-      # ===== Setup Docker Buildx =====
-      - name: Set up Docker Buildx
+      # ===== Thiết lập Docker Buildx =====
+      - name: Thiết lập Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ===== Build Docker image =====
-      - name: Build image
-        run: docker build -t milk_app:test -f docker/Dockerfile .
+      # ===== Build image Docker với cache =====
+      - name: Build image Docker
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: false
+          tags: milk_app:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      # ===== Run container =====
-      - name: Run container
+      # ===== Chạy container kiểm thử =====
+      - name: Chạy container kiểm thử
         run: |
           docker run -d -p 8080:80 --name test_app milk_app:test
-          sleep 20
 
-      # ===== Show running containers =====
-      - name: Debug - Show containers
+      # ===== Chờ ứng dụng khởi động =====
+      - name: Kiểm tra ứng dụng đã sẵn sàng
+        run: |
+          for i in {1..20}; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080 || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Ứng dụng đã sẵn sàng"
+              exit 0
+            fi
+            echo "Đang chờ ứng dụng khởi động... lần thử $i"
+            sleep 3
+          done
+
+          echo "Ứng dụng không khởi động thành công"
+          docker logs test_app
+          exit 1
+
+      # ===== Hiển thị container đang chạy =====
+      - name: Hiển thị danh sách container
         run: docker ps -a
 
-      # ===== Health check =====
-      - name: Test HTTP response
-        run: |
-          STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:8080)
-          echo "HTTP STATUS: $STATUS"
-          if [ "$STATUS" -ne 200 ]; then
-            echo "Application failed health check"
-            docker logs test_app
-            exit 1
-          fi
-
-      # ===== Cleanup =====
-      - name: Stop container
-        run: docker rm -f test_app
+      # ===== Dọn dẹp container =====
+      - name: Dọn dẹp container kiểm thử
+        if: always()
+        run: docker rm -f test_app || true
