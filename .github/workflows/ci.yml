@@ -25,7 +25,7 @@ jobs:
           file: docker/Dockerfile
           push: false
           tags: milk_app:test
-          load: false
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
