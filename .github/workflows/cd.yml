@@ -1,29 +1,44 @@
-name: CD - Auto Deploy
+name: CD - Tự động triển khai
 
 on:
-  workflow_run:
-    workflows: ["CI - Build & Test"]
-    types:
-      - completed
+  push:
+    branches: [ main ]
+
+concurrency:
+  group: trien-khai-production
+  cancel-in-progress: true
 
 jobs:
   deploy:
-    if: >
-      github.event.workflow_run.conclusion == 'success' &&
-      github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
 
     steps:
-      # ===== Checkout source =====
-      - name: Checkout source
+      # ===== Lấy mã nguồn =====
+      - name: Lấy mã nguồn từ repository
         uses: actions/checkout@v4
 
-      # ===== Setup Flyctl =====
-      - name: Setup Flyctl
+      # ===== Cài đặt Flyctl =====
+      - name: Thiết lập Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@v1
 
-      # ===== Deploy to Fly =====
-      - name: Deploy
-        run: flyctl deploy --remote-only --no-cache --strategy immediate
+      # ===== Triển khai lên Fly.io =====
+      - name: Triển khai ứng dụng lên Fly.io
+        run: flyctl deploy --remote-only --strategy immediate
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+
+      # ===== Kiểm tra ứng dụng sau khi deploy =====
+      - name: Kiểm tra tình trạng production
+        run: |
+          for i in {1..10}; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" https://ecmp186-nhom06.fly.dev || true)
+            if [ "$STATUS" = "200" ]; then
+              echo "Production hoạt động bình thường"
+              exit 0
+            fi
+            echo "Đang chờ production ổn định..."
+            sleep 5
+          done
+
+          echo "Production gặp lỗi sau khi triển khai"
+          exit 1
