@@ -3,6 +3,8 @@ name: CI - Build & Test
 on:
   pull_request:
     branches: [ main ]
+  push:
+    branches: [ main ]
 
 jobs:
   build-test:
@@ -10,22 +12,22 @@ jobs:
 
     steps:
       # ===== Lấy mã nguồn =====
-      - name: Lấy mã nguồn từ repository
+      - name: Lấy mã nguồn
         uses: actions/checkout@v4
 
-      # ===== Thiết lập Docker Buildx =====
-      - name: Thiết lập Docker Buildx
+      # ===== Cài đặt Docker Buildx =====
+      - name: Cài đặt Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ===== Build image Docker với cache =====
+      # ===== Build Docker image (có cache) =====
       - name: Build image Docker
         uses: docker/build-push-action@v5
         with:
           context: .
           file: docker/Dockerfile
           push: false
-          load: true
           tags: milk_app:test
+          load: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -34,7 +36,7 @@ jobs:
         run: |
           docker run -d -p 8080:80 --name test_app milk_app:test
 
-      # ===== Kiểm tra ứng dụng đã sẵn sàng =====
+      # ===== Chờ ứng dụng khởi động =====
       - name: Kiểm tra ứng dụng đã sẵn sàng
         run: |
           for i in {1..20}; do
@@ -43,15 +45,15 @@ jobs:
               echo "Ứng dụng đã sẵn sàng"
               exit 0
             fi
-            echo "Đang chờ ứng dụng khởi động... lần thử $i"
+            echo "Đang chờ ứng dụng... lần $i"
             sleep 3
           done
 
-          echo "Ứng dụng không khởi động thành công"
+          echo "Ứng dụng không khởi động được"
           docker logs test_app
           exit 1
 
-      # ===== Hiển thị container đang chạy =====
+      # ===== Hiển thị container (debug) =====
       - name: Hiển thị danh sách container
         run: docker ps -a
 
