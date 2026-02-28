@@ -72,6 +72,7 @@ HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
 EXPOSE 80
 
 COPY docker/entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
+RUN chmod +x /entrypoint.sh \
+    && sed -i 's/\r$//' /entrypoint.sh
+    
 ENTRYPOINT ["/entrypoint.sh"]
