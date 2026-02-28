@@ -7,7 +7,7 @@ app = 'ecmp186-nhom06'
 primary_region = 'sin'
 
 [build]
-  dockerfile = 'docker/Dockerfile'
+  dockerfile = 'docker/Dockerfile.prod'
 
 [[mounts]]
   source="uploads"

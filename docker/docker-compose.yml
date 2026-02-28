@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: ..
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/Dockerfile.dev
     container_name: milk_app
     ports:
       - "8080:80"
@@ -16,6 +16,17 @@ services:
     volumes:
       - ..:/var/www/html
       - images_data:/var/www/html/public/assets/images
+    networks:
+      - milk_network
+    restart: unless-stopped
+
+  frontend:
+    image: node:20
+    container_name: milk_frontend
+    working_dir: /app
+    volumes:
+      - ..:/app
+    command: sh -c "npm install && npm run dev"
     networks:
       - milk_network
     restart: unless-stopped
