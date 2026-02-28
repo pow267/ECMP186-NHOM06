@@ -22,14 +22,19 @@ services:
 
   frontend:
     image: node:20
-    container_name: milk_frontend
     working_dir: /app
     volumes:
       - ..:/app
-    command: sh -c "npm install && npm run dev"
+    command: >
+      sh -c "
+      npm install &&
+      npx tailwindcss
+      -i public/assets/css/input.css
+      -o public/assets/css/output.css
+      --watch
+      "
     networks:
       - milk_network
-    restart: unless-stopped
 
   db:
     image: postgres:15
