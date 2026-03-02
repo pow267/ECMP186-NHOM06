@@ -36,6 +36,8 @@ services:
   db:
     image: postgres:15
     container_name: milk_db
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: ql_ban_sua
       POSTGRES_USER: postgres
