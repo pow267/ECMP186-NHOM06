@@ -17,12 +17,12 @@ jobs:
       - name: Cài đặt Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ===== Build Docker image =====
+      # ===== Build Docker image (Development) =====
       - name: Build image Docker
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: docker/Dockerfile.prod
+          file: docker/Dockerfile.dev
           push: false
           tags: milk_app:test
           load: true
